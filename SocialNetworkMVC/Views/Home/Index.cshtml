@@ -1,0 +1,25 @@
+﻿@*@{
+    ViewData["Title"] = "Home";
+}
+
+<h2>Welcome to SocialNetwork</h2>
+
+<p>
+    <a href="@Url.Action("Login", "Account")">Login</a> | 
+    <a href="@Url.Action("Register", "Account")">Register</a>
+</p>*@
+
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="jumbotron">
+    <h1 class="display-4">Welcome to SocialNetwork</h1>
+    <hr class="my-4">
+    <p>Please register or login to continue.</p>
+    <p class="lead">
+        <a class="btn btn-primary btn-lg" href="@Url.Action("Register", "Account")" role="button">Register</a>
+        <a class="btn btn-secondary btn-lg" href="@Url.Action("Login", "Account")" role="button">Login</a>
+    </p>
+</div>
+

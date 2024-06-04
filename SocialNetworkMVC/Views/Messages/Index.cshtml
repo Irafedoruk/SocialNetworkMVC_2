@@ -1,0 +1,110 @@
+﻿@model IEnumerable<SocialNetworkMVC.Models.MessageViewModel>
+
+@{
+    ViewData["Title"] = "Messages";
+}
+
+<h1>Messages</h1>
+
+<div id="messageContainer">
+    @foreach (var message in Model)
+    {
+        <p class="@(message.IsSentByCurrentUser ? "sent-message" : "received-message")">
+            <strong>@message.SenderName:</strong> @message.Content <br />
+            <small>@message.Timestamp</small>
+        </p>
+    }
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/5.0.8/signalr.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var connection = new signalR.HubConnectionBuilder().withUrl("/chatHub").build();
+
+            connection.on("ReceiveMessage", function (user, messageContent, timestamp, isSentByCurrentUser) {
+                // Додавання повідомлення до контейнера
+                var messageElement = document.createElement("p");
+                messageElement.className = isSentByCurrentUser ? "sent-message" : "received-message";
+
+                var strongElement = document.createElement("strong");
+                strongElement.textContent = user + ": ";
+
+                var textElement = document.createTextNode(messageContent + " ");
+
+                var smallElement = document.createElement("small");
+                smallElement.textContent = new Date(timestamp).toLocaleString();
+
+                messageElement.appendChild(strongElement);
+                messageElement.appendChild(textElement);
+                messageElement.appendChild(document.createElement("br"));
+                messageElement.appendChild(smallElement);
+
+                document.getElementById("messageContainer").appendChild(messageElement);
+
+                if (!isSentByCurrentUser) {
+                    var messageLink = document.getElementById("messagesLink");
+                    if (messageLink) {
+                        messageLink.classList.add("unread-messages");
+                    }
+                }
+            });
+
+            connection.start().then(function () {
+                console.log("Connected to chatHub");
+            }).catch(function (err) {
+                console.error("Error connecting to chatHub: ", err.toString());
+            });
+
+            var sendMessageForm = document.getElementById("sendMessageForm");
+            if (sendMessageForm) {
+                sendMessageForm.addEventListener("submit", function (event) {
+                    event.preventDefault();
+                    var senderId = document.getElementById("senderId").value;
+                    var senderName = document.getElementById("senderName").value;
+                    var receiverId = document.getElementById("receiverId").value;
+                    var receiverName = document.getElementById("receiverName").value;
+                    var messageContent = document.getElementById("messageContent").value;
+                    if (senderId && senderName && receiverId && messageContent) {
+                        sendMessage(senderId, senderName, receiverId, receiverName, messageContent);
+                    }
+                });
+            }
+
+            function sendMessage(senderId, senderName, receiverId, receiverName, messageContent) {
+                var message = {
+                    SenderId: senderId,
+                    SenderName: senderName,
+                    ReceiverId: receiverId,
+                    ReceiverName: receiverName,
+                    Content: messageContent
+                };
+
+                fetch('/Messages/SendMessage', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(message)
+                }).then(response => {
+                    if (response.ok) {
+                        // Отримання даних з сервера
+                        response.json().then(data => {
+                            // Оновлення сповіщення
+                            //var notificationBadge = document.getElementById("messageNotification");
+                            //if (notificationBadge) {
+                            //    notificationBadge.style.display = "inline-block";
+                            //}
+                            window.location.href = '/Messages';
+                            console.log("Message sent successfully!");
+                        });
+                    } else {
+                        console.error("Failed to send message");
+                    }
+                }).catch(err => {
+                    console.error("Error sending message: ", err.toString());
+                });
+            }
+        });
+    </script>
+}

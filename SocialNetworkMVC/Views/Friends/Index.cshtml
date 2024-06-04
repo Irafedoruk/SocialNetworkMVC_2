@@ -1,0 +1,83 @@
+﻿@model IEnumerable<SocialNetworkMVC.Data.Entities.User>
+
+@{
+    ViewData["Title"] = "Friends";
+}
+
+@if (ViewBag.SearchQuery != null)
+{
+    <h3>Search Results for "@ViewBag.SearchQuery"</h3>
+    @if (Model != null && Model.Any())
+    {
+        <ul>
+            @foreach (var user in Model)
+            {
+                <li>
+                    <a href="@Url.Action("UserProfile", "User", new { userId = user.Id })">@user.UserName</a>
+                    @if (User.Identity.Name != user.UserName) // Якщо це не поточний користувач
+                    {
+                        if (ViewBag.IsFriend != null && ViewBag.IsFriend.ContainsKey(user.Id) && ViewBag.IsFriend[user.Id]) // Якщо цей користувач вже є другом
+                        {
+                            <form asp-action="RemoveFriend" method="post" style="display:inline;">
+                                 <input type="hidden" name="friendId" value="@user.Id" />
+                                 <button type="submit" class="btn btn-danger">
+                                    <i class="bi bi-person-x-fill"></i>Remove from Friends
+                                 </button>
+                            </form>
+                        }
+                        else // Якщо цей користувач не є другом
+                        {
+                             <form asp-action="AddFriend" method="post" style="display:inline;">
+                                 <input type="hidden" name="friendId" value="@user.Id" />
+                                 <button type="submit" class="btn btn-link">Add to Friends</button>
+                             </form>
+                        }
+                    }
+                    <form action="@Url.Action("ComposeMessage", "Messages")" method="get" style="display:inline;">
+                        <input type="hidden" name="receiverId" value="@user.Id" />
+                        <input type="hidden" name="receiverName" value="@user.UserName" />
+                        <button type="submit" class="btn btn-primary">Написати повідомлення</button>
+                    </form>
+                </li>
+            }
+        </ul>
+    }
+    else
+    {
+        <p>No users found for "@ViewBag.SearchQuery".</p>
+    }
+}
+else
+{
+    <form asp-action="Search" method="get" class="form-inline mt-3 mb-3">
+        <input type="text" name="query" class="form-control mr-2" placeholder="Search for users" />
+        <button type="submit" class="btn btn-primary">Search</button>
+    </form>
+
+    <h3>Your Friends</h3>
+
+    @if (ViewBag.Friends != null && ViewBag.Friends.Count > 0)
+    {
+        <ul>
+            @foreach (var friend in ViewBag.Friends)
+            {
+                <li class="mb-2">
+                    <a href="@Url.Action("UserProfile", "User", new { userId = friend.Id })">@friend.UserName</a>
+                    <form asp-action="RemoveFriend" method="post" style="display:inline;">
+                        <input type="hidden" name="friendId" value="@friend.Id" />
+                        <button type="submit" class="btn"><i class="bi bi-person-x-fill"></i></button>
+                    </form>
+                    <form action="@Url.Action("ComposeMessage", "Messages")" method="get" style="display:inline;">
+                        <input type="hidden" name="receiverId" value="@friend.Id" />
+                        <input type="hidden" name="receiverName" value="@friend.UserName" />
+                        <button type="submit" class="btn"><i class="bi bi-envelope"></i></button>
+                    </form>
+                </li>
+            }
+         </ul>
+    }
+    else
+    {
+         <p>You have no friends yet.</p>
+    }
+}

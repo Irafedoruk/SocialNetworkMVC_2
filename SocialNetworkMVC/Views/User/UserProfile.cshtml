@@ -1,0 +1,45 @@
+﻿@model SocialNetworkMVC.Data.Entities.User
+
+<div class="row">
+    <div class="col-md-3">
+        <h4>User Profile</h4>
+        <p>Username: @Model.UserName</p>
+        <p>Email: @Model.Email</p>
+        <!-- інші дані про користувача -->
+    </div>
+    <div class="col-md-9">
+        <h4>Posts</h4>
+
+        <div>
+            <h5>Create a new post</h5>
+            <form asp-action="Create" asp-controller="Post" method="post">
+                <input type="hidden" name="userId" value="@Model.Id" />
+                <div class="form-group">
+                    <label for="postText">Post Text</label>
+                    <input type="text" id="postText" name="text" class="form-control" />
+                </div>
+                <button type="submit" class="btn btn-primary">Add Post</button>
+            </form>
+        </div>
+
+        <hr />
+
+        @if (Model.Posts != null && Model.Posts.Any())
+        {
+            <ul>
+                @foreach (var post in Model.Posts)
+                {
+                    <li>
+                        <p>@post.Text</p>
+                        <p><small>Posted on @post.DatePublish by @post.User.UserName</small></p>
+                    </li>
+                }
+            </ul>
+        }
+        else
+        {
+            <p>No posts available.</p>
+        }
+    </div>
+
+</div>

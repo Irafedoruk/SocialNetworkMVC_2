@@ -1,0 +1,64 @@
+﻿@model IEnumerable<SocialNetworkMVC.Data.Entities.Post>
+@{
+    ViewData["Title"] = "Profile";
+}
+
+<h1>Profile</h1>
+
+<div>
+    <h2>Create a new post</h2>
+    <form asp-action="Create" asp-controller="Post" method="post">
+        <div class="form-group">
+            <label for="postText">Post Text</label>
+            <input type="text" id="postText" name="Text" class="form-control" />
+        </div>
+        <button type="submit" class="btn btn-primary">Add Post</button>
+    </form>
+</div>
+
+<hr />
+
+<div>
+    <h2>Your Posts</h2>
+    <ul class="list-group">
+        @foreach (var post in Model)
+        {
+            <li class="list-group-item">
+                <h4>@post.Text</h4>
+                <small>Posted on @post.DatePublish by @post.User.UserName</small>
+                <div>
+                    <button class="btn btn-secondary edit-post" data-toggle="modal" data-target="#editModal" data-id="@post.Id" data-text="@post.Text">Edit</button>
+                    <form asp-action="Delete" asp-route-id="@post.Id" method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </form>
+                </div>
+                <div>
+                    <h5>Comments</h5>
+                    <ul>
+                        @foreach (var comment in post.Comments)
+                        {
+                            <li>@comment.Text - @comment.User.UserName</li>
+                        }
+                    </ul>
+                </div>
+                <div>
+                    <span>@post.Likes.Count</span> Likes
+                </div>
+            </li>
+        }
+    </ul>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).on('click', '.edit-post', function (event) {
+            var button = $(event.currentTarget);
+            var postId = button.data('id');
+            var postText = button.data('text');
+
+            var modal = $('#editModal');
+            modal.find('#editPostId').val(postId);
+            modal.find('#editPostText').val(postText);
+        });
+    </script>
+}

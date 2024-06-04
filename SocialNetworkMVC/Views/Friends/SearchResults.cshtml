@@ -1,0 +1,28 @@
+﻿@model IEnumerable<SocialNetworkMVC.Data.Entities.User>
+
+@{
+    ViewData["Title"] = "Search Results";
+}
+
+<h2>Search Results</h2>
+
+@if (Model != null && Model.Any())
+{
+    <ul>
+        @foreach (var user in Model)
+        {
+            <li>
+                @user.UserName
+                <form asp-action="AddFriend" method="post" style="display:inline">
+                    <input type="hidden" name="friendId" value="@user.Id" />
+                    <button type="submit" class="btn"><i class="bi bi-person-plus-fill"></i></button>
+                </form>
+            </li>
+        }
+    </ul>
+}
+else
+{
+    <p>No users found.</p>
+}
+

@@ -1,0 +1,80 @@
+﻿@using System.Security.Claims;
+@model SocialNetworkMVC.Models.MessageViewModel
+
+@{
+    ViewData["Title"] = "Compose Message";
+}
+
+<h3>Message</h3>
+
+<form id="sendMessageForm" method="post">
+    <input type="hidden" id="senderId" value="@User.FindFirstValue(ClaimTypes.NameIdentifier)" />
+    <input type="hidden" id="senderName" value="@User.Identity.Name" />
+    <input type="hidden" id="receiverId" value="@Model.ReceiverId" />
+    <input type="hidden" id="receiverName" value="@Model.ReceiverName" />
+    <textarea id="messageContent" required></textarea>
+    <button type="submit">Send</button>
+</form>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/5.0.8/signalr.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var connection = new signalR.HubConnectionBuilder().withUrl("/chatHub").build();
+
+            connection.on("ReceiveMessage", function (user, message) {
+                var messageElement = document.createElement("p");
+                messageElement.textContent = user + ": " + message;
+                document.getElementById("messageContainer").appendChild(messageElement);
+            });
+
+            connection.start().then(function () {
+                console.log("Connected to chatHub");
+            }).catch(function (err) {
+                console.error("Error connecting to chatHub: ", err.toString());
+            });
+
+            var sendMessageForm = document.getElementById("sendMessageForm");
+            if (sendMessageForm) {
+                sendMessageForm.addEventListener("submit", function (event) {
+                    event.preventDefault();
+                    var senderId = document.getElementById("senderId").value;
+                    var senderName = document.getElementById("senderName").value;
+                    var receiverId = document.getElementById("receiverId").value;
+                    var receiverName = document.getElementById("receiverName").value;
+                    var messageContent = document.getElementById("messageContent").value;
+                    if (senderId && senderName && receiverId && messageContent) {
+                        sendMessage(senderId, senderName, receiverId, receiverName, messageContent);
+                    }
+                });
+            }
+
+            function sendMessage(senderId, senderName, receiverId, receiverName, messageContent) {
+                var message = {
+                    SenderId: senderId,
+                    SenderName: senderName,
+                    ReceiverId: receiverId,
+                    ReceiverName: receiverName,
+                    Content: messageContent
+                };
+
+                fetch('/Messages/SendMessage', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(message)
+                }).then(response => response.json())
+                    .then(data => {
+                        if (data.redirectToUrl) {
+                            window.location.href = data.redirectToUrl;
+                        } else {
+                            console.error("Failed to send message");
+                        }
+                    }).catch(err => {
+                        console.error("Error sending message: ", err.toString());
+                    });
+            }
+        });
+    </script>
+}
